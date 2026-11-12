@@ -1,4 +1,5 @@
 import { TransitionLink } from "@/components/motion/TransitionProvider";
+import Year from "@/components/ui/Year";
 
 export default function Footer() {
   return (
@@ -11,7 +12,7 @@ export default function Footer() {
               Your next collection starts here.
             </h3>
             <p className="mt-4 text-neutral-400 text-sm max-w-sm leading-relaxed">
-              Share a brief, explore an idea, or meet the team who will bring it to life.
+              Share a brief, explore an idea, or meet the people who will bring it to life.
             </p>
             <div className="mt-8 space-y-2 font-mono text-sm text-neutral-300">
               <p>info@ssileather.com</p>
@@ -43,7 +44,7 @@ export default function Footer() {
           </div>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono">
             <span>From Kanpur, for the world.</span>
-            <span>&copy; {new Date().getFullYear()} SS INTERNATIONAL. All rights reserved.</span>
+            <span>&copy; <Year /> SS INTERNATIONAL. All rights reserved.</span>
           </div>
         </div>
       </div>
