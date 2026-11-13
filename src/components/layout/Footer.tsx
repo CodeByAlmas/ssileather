@@ -22,10 +22,10 @@ export default function Footer() {
 
           <div className="md:col-span-3 space-y-3 text-sm text-neutral-400">
             <p className="font-mono text-xs uppercase tracking-widest text-white mb-4">Navigation</p>
-            <TransitionLink href="/#products" className="block hover:text-white transition-colors">Lookbook</TransitionLink>
+            <TransitionLink href="/products" className="block hover:text-white transition-colors">Lookbook</TransitionLink>
             <TransitionLink href="/why-choose-us" className="block hover:text-white transition-colors">Our approach</TransitionLink>
-            <TransitionLink href="/about-us" className="block hover:text-white transition-colors">Manufacturing</TransitionLink>
-            <TransitionLink href="/why-choose-us" className="block hover:text-white transition-colors">Responsibility</TransitionLink>
+            <TransitionLink href="/manufacturing" className="block hover:text-white transition-colors">Manufacturing</TransitionLink>
+            <TransitionLink href="/responsibility" className="block hover:text-white transition-colors">Responsibility</TransitionLink>
           </div>
 
           <div className="md:col-span-3 space-y-3 text-sm text-neutral-400">

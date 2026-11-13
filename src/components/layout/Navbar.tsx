@@ -36,16 +36,16 @@ export default function Navbar() {
 
           {/* Banox Nav Links (White with hover glow) */}
           <nav className="hidden lg:flex items-center space-x-8 text-[13px] font-medium tracking-wide text-white/85">
-            <TransitionLink href="/#products" className="hover:text-white transition-colors">
+            <TransitionLink href="/products" className="hover:text-white transition-colors">
               Lookbook
             </TransitionLink>
             <TransitionLink href="/why-choose-us" className="hover:text-white transition-colors">
               Our approach
             </TransitionLink>
-            <TransitionLink href="/about-us" className="hover:text-white transition-colors">
+            <TransitionLink href="/manufacturing" className="hover:text-white transition-colors">
               Manufacturing
             </TransitionLink>
-            <TransitionLink href="/why-choose-us#compliance" className="hover:text-white transition-colors">
+            <TransitionLink href="/responsibility" className="hover:text-white transition-colors">
               Responsibility
             </TransitionLink>
             <TransitionLink href="/about-us" className="hover:text-white transition-colors">
@@ -93,13 +93,13 @@ export default function Navbar() {
         }`}
       >
         <div className="space-y-6 font-serif text-2xl text-white">
-          <TransitionLink href="/#products" onClick={() => setMobileOpen(false)} className="block py-2">
+          <TransitionLink href="/products" onClick={() => setMobileOpen(false)} className="block py-2">
             Lookbook
           </TransitionLink>
           <TransitionLink href="/why-choose-us" onClick={() => setMobileOpen(false)} className="block py-2">
             Our approach
           </TransitionLink>
-          <TransitionLink href="/about-us" onClick={() => setMobileOpen(false)} className="block py-2">
+          <TransitionLink href="/manufacturing" onClick={() => setMobileOpen(false)} className="block py-2">
             Manufacturing
           </TransitionLink>
           <TransitionLink href="/faqs" onClick={() => setMobileOpen(false)} className="block py-2">

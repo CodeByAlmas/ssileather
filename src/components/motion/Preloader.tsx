@@ -4,104 +4,262 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { prefersReducedMotion } from "@/lib/motion";
 
-const WORD = "SS International".split("");
-
-/**
- * Plays once per browser session. Sets html[data-ready] and fires "ss:ready"
- * as the curtain lifts so the hero can start its entrance.
- */
 export default function Preloader() {
   const root = useRef<HTMLDivElement>(null);
-  const count = useRef<HTMLSpanElement>(null);
-  const bar = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const html = document.documentElement;
     const el = root.current;
     if (!el) return;
 
+    // Trigger on every page refresh
+    html.classList.remove("no-preload");
+    delete html.dataset.ready;
+
     const ready = () => {
       html.dataset.ready = "true";
       window.dispatchEvent(new Event("ss:ready"));
     };
 
-    if (html.classList.contains("no-preload") || prefersReducedMotion()) {
+    if (prefersReducedMotion()) {
       el.style.display = "none";
       ready();
       return;
     }
 
     html.style.overflow = "hidden";
-    const counter = { v: 0 };
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         onComplete: () => {
           html.style.overflow = "";
           el.style.display = "none";
-          try {
-            sessionStorage.setItem("ss-preloaded", "1");
-          } catch {}
         },
       });
 
-      tl.from(".pl-char", {
-        yPercent: 115,
-        duration: 1.1,
-        stagger: 0.035,
-        ease: "expo.out",
+      const isMobile = window.innerWidth < 640;
+      const spreadX = isMobile
+        ? Math.min(window.innerWidth * 0.36, 135)
+        : Math.min(window.innerWidth * 0.34, 460);
+
+      // Tight horizontal spacing when merged ("SSI")
+      const joinedGap = isMobile ? 42 : 76;
+
+      // Initial state
+      gsap.set(".pl-left", { x: -spreadX, y: 0, rotation: 0 });
+      gsap.set(".pl-mid", { x: 0, y: 0, rotation: 0 });
+      gsap.set(".pl-right", { x: spreadX, y: 0, rotation: 0 });
+      gsap.set(".pl-stage", { scale: 1, transformOrigin: "50% 50%" });
+      gsap.set(".pl-fill", { clipPath: "inset(100% 0% 0% 0%)" });
+
+      // 1. Faded vector letters appear on pure black screen
+      tl.from(".pl-letter-wrap", {
+        autoAlpha: 0,
+        duration: 0.35,
+        ease: "power2.out",
       })
+
+        // 2. Smooth bottom-to-top pure white fill inside stationary letters
         .to(
-          counter,
+          ".pl-fill",
           {
-            v: 100,
-            duration: 1.9,
-            ease: "power2.inOut",
-            onUpdate: () => {
-              if (count.current)
-                count.current.textContent = String(Math.round(counter.v)).padStart(3, "0");
-            },
+            clipPath: "inset(0% 0% 0% 0%)",
+            duration: 1.3,
+            ease: "power1.inOut",
           },
-          0.2,
+          "+=0.08"
         )
-        .to(bar.current, { scaleX: 1, duration: 1.9, ease: "power2.inOut" }, 0.2)
-        .to(".pl-char", {
-          yPercent: -115,
-          duration: 0.55,
-          stagger: 0.02,
-          ease: "power3.in",
-        }, "+=0.1")
-        .to(".pl-meta", { autoAlpha: 0, duration: 0.3 }, "<")
-        .call(ready, undefined, ">-0.05")
-        .to(el, { yPercent: -100, duration: 1, ease: "expo.inOut" }, "<");
+
+        // 3. Left S and Right I converge inward to form tight "SSI"
+        .to(
+          ".pl-left",
+          {
+            x: -joinedGap,
+            duration: 0.5,
+            ease: "expo.inOut",
+          },
+          "+=0.2"
+        )
+        .to(
+          ".pl-right",
+          {
+            x: joinedGap,
+            duration: 0.5,
+            ease: "expo.inOut",
+          },
+          "<"
+        )
+
+        // 4A. Position Arc Shift Starts (Right I moves up-left, Left S moves down-right)
+        .to(
+          ".pl-right",
+          {
+            x: isMobile ? 12 : 22,
+            y: isMobile ? -40 : -72,
+            duration: 0.5,
+            ease: "power2.in",
+          },
+          "+=0.1"
+        )
+        .to(
+          ".pl-left",
+          {
+            x: isMobile ? -12 : -22,
+            y: isMobile ? 40 : 72,
+            duration: 0.5,
+            ease: "power2.in",
+          },
+          "<"
+        )
+
+        // 4B. Outer letters start rotating slightly delayed, only reaching half-way (~ -28deg)
+        .to(
+          ".pl-right",
+          {
+            rotation: -28,
+            duration: 0.4,
+            ease: "power2.in",
+          },
+          "<+=0.1"
+        )
+        .to(
+          ".pl-left",
+          {
+            rotation: -26,
+            duration: 0.4,
+            ease: "power2.in",
+          },
+          "<"
+        )
+
+        // 5. HALF-WAY INTERCEPT: Before outer letters finish rotating,
+        // Middle S starts rotating AND fast razor-sharp vector zoom-in overtakes the screen!
+        .to(
+          ".pl-mid",
+          {
+            rotation: -75,
+            duration: 0.42,
+            ease: "power3.in",
+          },
+          "<+=0.12"
+        )
+        .to(
+          ".pl-stage",
+          {
+            scale: 120,
+            duration: 0.44,
+            ease: "expo.in",
+          },
+          "<"
+        )
+        .call(ready, undefined, "-=0.2")
+        .to(
+          el,
+          {
+            autoAlpha: 0,
+            duration: 0.22,
+            ease: "power2.out",
+          },
+          "-=0.15"
+        );
     }, el);
 
-    return () => ctx.revert();
+    return () => {
+      html.style.overflow = "";
+      ctx.revert();
+    };
   }, []);
 
   return (
-    <div ref={root} className="preloader" role="status" aria-label="Loading SS International">
-      <div className="text-center">
-        <div
-          className="display text-bone flex flex-wrap justify-center overflow-hidden px-6 text-[clamp(2.2rem,7vw,5.5rem)]"
-          aria-hidden="true"
-        >
-          {WORD.map((c, i) => (
-            <span key={i} className="pl-char inline-block whitespace-pre">
-              {c}
-            </span>
-          ))}
-        </div>
-        <div className="pl-meta mx-auto mt-10 w-[min(320px,70vw)]">
-          <div className="bg-bone/15 h-px w-full overflow-hidden">
-            <div ref={bar} className="bg-brass h-full origin-left scale-x-0" />
+    <div
+      ref={root}
+      className="preloader fixed inset-0 z-[110] flex items-center justify-center bg-[#050505] overflow-hidden"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading SS International"
+    >
+      <span className="sr-only">SS International — Leading Leather Goods Manufacturer</span>
+
+      {/* Outer Vector Zoom Stage (No will-change-transform on parent so SVG re-rasterizes sharply) */}
+      <div
+        className="pl-stage relative flex items-center justify-center w-full h-full"
+        aria-hidden="true"
+      >
+        <div className="relative flex items-center justify-center">
+          
+          {/* LEFT VECTOR LETTER: S */}
+          <div className="pl-letter-wrap pl-left absolute flex items-center justify-center">
+            <VectorLetter char="S" />
           </div>
-          <div className="text-stone mt-3 flex justify-between text-xs tabular-nums">
-            <span>Kanpur, since 2009</span>
-            <span ref={count}>000</span>
+
+          {/* MIDDLE VECTOR LETTER: S */}
+          <div className="pl-letter-wrap pl-mid absolute flex items-center justify-center">
+            <VectorLetter char="S" />
           </div>
+
+          {/* RIGHT VECTOR LETTER: I */}
+          <div className="pl-letter-wrap pl-right absolute flex items-center justify-center">
+            <VectorLetter char="I" />
+          </div>
+
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Pure SVG Vector Glyph with dual-layer bottom-to-top white fill.
+ * Prevents browser bitmap scaling pixelation even at 120x zoom.
+ */
+function VectorLetter({ char }: { char: string }) {
+  return (
+    <div className="relative w-[84px] h-[110px] sm:w-[116px] sm:h-[150px] flex items-center justify-center select-none">
+      {/* Base Low-Opacity Vector */}
+      <svg
+        viewBox="0 0 100 130"
+        className="w-full h-full overflow-visible"
+        shapeRendering="geometricPrecision"
+        textRendering="geometricPrecision"
+      >
+        <text
+          x="50"
+          y="106"
+          textAnchor="middle"
+          fill="rgba(255, 255, 255, 0.2)"
+          className="font-sans font-black"
+          style={{
+            fontSize: "118px",
+            fontWeight: 900,
+            letterSpacing: "-0.05em",
+          }}
+        >
+          {char}
+        </text>
+      </svg>
+
+      {/* Pure White Liquid Fill Vector */}
+      <svg
+        viewBox="0 0 100 130"
+        className="pl-fill w-full h-full overflow-visible absolute inset-0"
+        shapeRendering="geometricPrecision"
+        textRendering="geometricPrecision"
+      >
+        <text
+          x="50"
+          y="106"
+          textAnchor="middle"
+          fill="#FFFFFF"
+          className="font-sans font-black"
+          style={{
+            fontSize: "118px",
+            fontWeight: 900,
+            letterSpacing: "-0.05em",
+          }}
+        >
+          {char}
+        </text>
+      </svg>
     </div>
   );
 }

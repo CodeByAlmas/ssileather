@@ -30,7 +30,7 @@ export default function Hero() {
         {/* Action Link with Banox Arrow ↗ */}
         <div className="mt-6 sm:mt-8 flex items-center gap-6">
           <TransitionLink
-            href="/#products"
+            href="/products"
             className="inline-flex items-center gap-2 text-xs sm:text-[13px] font-medium tracking-wide text-white border-b border-white/70 pb-1 hover:border-white hover:gap-3 transition-all"
             aria-label="Explore Belt and Accessory Catalog"
           >
