@@ -8,20 +8,50 @@ import { TransitionLink } from "@/components/motion/TransitionProvider";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Apni images public/editorial/ folder me rakh kar neeche paths update kar sakte hain
 const EDITORIAL_IMAGES = {
   // Section 02 Images
-  craft: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1200&auto=format&fit=crop",
-  model: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1400&auto=format&fit=crop",
+  craft: "/editorial/craft.jpg",
+  model: "/editorial/model.jpg",
 
   // Section 03 Images (3-Image Factory Layout)
-  factoryFloor: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1600&auto=format&fit=crop",
-  stitching: "https://images.unsplash.com/photo-1590736969955-71cc94801759?q=80&w=1000&auto=format&fit=crop",
-  facade: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop",
+  factoryFloor: "/editorial/factory-floor.jpg",
+  stitching: "/editorial/stitching.jpg",
+  facade: "/editorial/facade.jpg",
 
-  // Section 04 Images (Solar Roof + Leather Hide Storage)
-  solarRoof: "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=1600&auto=format&fit=crop",
-  materials: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1200&auto=format&fit=crop",
+  // Section 04 Images (Leather Hide Storage + Infrastructure)
+  materials: "/editorial/materials.jpg",
+  solarRoof: "/editorial/solar-roof.jpg",
 };
+
+/**
+ * Helper to generate a multi-box polygon clip-path so ANY floating image
+ * overlapping the headline turns those exact letters pure white.
+ */
+function buildMultiBoxPolygon(stage: HTMLElement, elements: (HTMLElement | null)[]) {
+  const stageRect = stage.getBoundingClientRect();
+  const segments: string[] = [];
+
+  for (const el of elements) {
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    const l = Math.max(0, r.left - stageRect.left);
+    const t = Math.max(0, r.top - stageRect.top);
+    const right = Math.min(stageRect.width, r.right - stageRect.left);
+    const b = Math.min(stageRect.height, r.bottom - stageRect.top);
+
+    segments.push(
+      `${l}px ${t}px`,
+      `${right}px ${t}px`,
+      `${right}px ${b}px`,
+      `${l}px ${b}px`,
+      `${l}px ${t}px`,
+      `0px 0px`
+    );
+  }
+
+  return segments.length > 0 ? `polygon(${segments.join(", ")})` : "polygon(0 0, 0 0, 0 0, 0 0)";
+}
 
 export default function FeatureStack() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,26 +81,18 @@ export default function FeatureStack() {
   const s4WhiteTextRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // SECTION 02 Clip Updater
+    // SECTION 02 Multi-Image Clip Updater
     const s2Stage = stage02Ref.current;
     const s2Left = s2LeftImgRef.current;
     const s2Right = s2RightImgRef.current;
     const s2White = s2WhiteTextRef.current;
 
     function updateS2ClipMask() {
-      if (!s2Right || !s2Stage || !s2White) return;
-      const stageRect = s2Stage.getBoundingClientRect();
-      const imgRect = s2Right.getBoundingClientRect();
-
-      const top = Math.max(0, imgRect.top - stageRect.top);
-      const right = Math.min(stageRect.width, imgRect.right - stageRect.left);
-      const bottom = Math.min(stageRect.height, imgRect.bottom - stageRect.top);
-      const left = Math.max(0, imgRect.left - stageRect.left);
-
-      s2White.style.clipPath = `polygon(${left}px ${top}px, ${right}px ${top}px, ${right}px ${bottom}px, ${left}px ${bottom}px)`;
+      if (!s2Stage || !s2White) return;
+      s2White.style.clipPath = buildMultiBoxPolygon(s2Stage, [s2Left, s2Right]);
     }
 
-    // SECTION 03 Clip Updater
+    // SECTION 03 Multi-Image Clip Updater
     const s3Stage = stage03Ref.current;
     const s3TopRight = s3TopRightImgRef.current;
     const s3BottomLeft = s3BottomLeftImgRef.current;
@@ -78,47 +100,41 @@ export default function FeatureStack() {
     const s3White = s3WhiteTextRef.current;
 
     function updateS3ClipMask() {
-      if (!s3TopRight || !s3Stage || !s3White) return;
-      const stageRect = s3Stage.getBoundingClientRect();
-      const imgRect = s3TopRight.getBoundingClientRect();
-
-      const top = Math.max(0, imgRect.top - stageRect.top);
-      const right = Math.min(stageRect.width, imgRect.right - stageRect.left);
-      const bottom = Math.min(stageRect.height, imgRect.bottom - stageRect.top);
-      const left = Math.max(0, imgRect.left - stageRect.left);
-
-      s3White.style.clipPath = `polygon(${left}px ${top}px, ${right}px ${top}px, ${right}px ${bottom}px, ${left}px ${bottom}px)`;
+      if (!s3Stage || !s3White) return;
+      s3White.style.clipPath = buildMultiBoxPolygon(s3Stage, [
+        s3TopRight,
+        s3BottomLeft,
+        s3BottomMid,
+      ]);
     }
 
-    // SECTION 04 Clip Updater
+    // SECTION 04 Multi-Image Clip Updater
     const s4Stage = stage04Ref.current;
     const s4Left = s4LeftImgRef.current;
     const s4Right = s4RightImgRef.current;
     const s4White = s4WhiteTextRef.current;
 
     function updateS4ClipMask() {
-      if (!s4Right || !s4Stage || !s4White) return;
-      const stageRect = s4Stage.getBoundingClientRect();
-      const imgRect = s4Right.getBoundingClientRect();
-
-      const top = Math.max(0, imgRect.top - stageRect.top);
-      const right = Math.min(stageRect.width, imgRect.right - stageRect.left);
-      const bottom = Math.min(stageRect.height, imgRect.bottom - stageRect.top);
-      const left = Math.max(0, imgRect.left - stageRect.left);
-
-      s4White.style.clipPath = `polygon(${left}px ${top}px, ${right}px ${top}px, ${right}px ${bottom}px, ${left}px ${bottom}px)`;
+      if (!s4Stage || !s4White) return;
+      s4White.style.clipPath = buildMultiBoxPolygon(s4Stage, [s4Left, s4Right]);
     }
 
     // Parallax & Count-Up ScrollTrigger Context
     const ctx = gsap.context(() => {
       if (s2Left && s2Right && s2Stage) {
         gsap.to(s2Left, {
-          y: -28,
+          y: -26,
           ease: "none",
-          scrollTrigger: { trigger: s2Stage, start: "top bottom", end: "bottom top", scrub: 1.2 },
+          scrollTrigger: {
+            trigger: s2Stage,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1.2,
+            onUpdate: updateS2ClipMask,
+          },
         });
         gsap.to(s2Right, {
-          y: -55,
+          y: -50,
           ease: "none",
           scrollTrigger: {
             trigger: s2Stage,
@@ -145,23 +161,41 @@ export default function FeatureStack() {
         gsap.to(s3BottomLeft, {
           y: -28,
           ease: "none",
-          scrollTrigger: { trigger: s3Stage, start: "top bottom", end: "bottom top", scrub: 1.2 },
+          scrollTrigger: {
+            trigger: s3Stage,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1.2,
+            onUpdate: updateS3ClipMask,
+          },
         });
         gsap.to(s3BottomMid, {
-          y: -18,
+          y: -20,
           ease: "none",
-          scrollTrigger: { trigger: s3Stage, start: "top bottom", end: "bottom top", scrub: 1.4 },
+          scrollTrigger: {
+            trigger: s3Stage,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1.4,
+            onUpdate: updateS3ClipMask,
+          },
         });
       }
 
       if (s4Left && s4Right && s4Stage) {
         gsap.to(s4Left, {
-          y: -28,
+          y: -26,
           ease: "none",
-          scrollTrigger: { trigger: s4Stage, start: "top bottom", end: "bottom top", scrub: 1.2 },
+          scrollTrigger: {
+            trigger: s4Stage,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1.2,
+            onUpdate: updateS4ClipMask,
+          },
         });
         gsap.to(s4Right, {
-          y: -55,
+          y: -50,
           ease: "none",
           scrollTrigger: {
             trigger: s4Stage,
@@ -213,22 +247,22 @@ export default function FeatureStack() {
     });
 
     // Cursor Float Tweens for S2
-    const xQuickS2Left = s2Left ? gsap.quickTo(s2Left, "x", { duration: 0.8, ease: "power2.out" }) : null;
-    const yQuickS2Left = s2Left ? gsap.quickTo(s2Left, "y", { duration: 0.8, ease: "power2.out" }) : null;
+    const xQuickS2Left = s2Left ? gsap.quickTo(s2Left, "x", { duration: 0.8, ease: "power2.out", onUpdate: updateS2ClipMask }) : null;
+    const yQuickS2Left = s2Left ? gsap.quickTo(s2Left, "y", { duration: 0.8, ease: "power2.out", onUpdate: updateS2ClipMask }) : null;
     const xQuickS2Right = s2Right ? gsap.quickTo(s2Right, "x", { duration: 0.8, ease: "power2.out", onUpdate: updateS2ClipMask }) : null;
     const yQuickS2Right = s2Right ? gsap.quickTo(s2Right, "y", { duration: 0.8, ease: "power2.out", onUpdate: updateS2ClipMask }) : null;
 
     // Cursor Float Tweens for S3
     const xQuickS3TopRight = s3TopRight ? gsap.quickTo(s3TopRight, "x", { duration: 0.8, ease: "power2.out", onUpdate: updateS3ClipMask }) : null;
     const yQuickS3TopRight = s3TopRight ? gsap.quickTo(s3TopRight, "y", { duration: 0.8, ease: "power2.out", onUpdate: updateS3ClipMask }) : null;
-    const xQuickS3BottomLeft = s3BottomLeft ? gsap.quickTo(s3BottomLeft, "x", { duration: 0.8, ease: "power2.out" }) : null;
-    const yQuickS3BottomLeft = s3BottomLeft ? gsap.quickTo(s3BottomLeft, "y", { duration: 0.8, ease: "power2.out" }) : null;
-    const xQuickS3BottomMid = s3BottomMid ? gsap.quickTo(s3BottomMid, "x", { duration: 0.8, ease: "power2.out" }) : null;
-    const yQuickS3BottomMid = s3BottomMid ? gsap.quickTo(s3BottomMid, "y", { duration: 0.8, ease: "power2.out" }) : null;
+    const xQuickS3BottomLeft = s3BottomLeft ? gsap.quickTo(s3BottomLeft, "x", { duration: 0.8, ease: "power2.out", onUpdate: updateS3ClipMask }) : null;
+    const yQuickS3BottomLeft = s3BottomLeft ? gsap.quickTo(s3BottomLeft, "y", { duration: 0.8, ease: "power2.out", onUpdate: updateS3ClipMask }) : null;
+    const xQuickS3BottomMid = s3BottomMid ? gsap.quickTo(s3BottomMid, "x", { duration: 0.8, ease: "power2.out", onUpdate: updateS3ClipMask }) : null;
+    const yQuickS3BottomMid = s3BottomMid ? gsap.quickTo(s3BottomMid, "y", { duration: 0.8, ease: "power2.out", onUpdate: updateS3ClipMask }) : null;
 
     // Cursor Float Tweens for S4
-    const xQuickS4Left = s4Left ? gsap.quickTo(s4Left, "x", { duration: 0.8, ease: "power2.out" }) : null;
-    const yQuickS4Left = s4Left ? gsap.quickTo(s4Left, "y", { duration: 0.8, ease: "power2.out" }) : null;
+    const xQuickS4Left = s4Left ? gsap.quickTo(s4Left, "x", { duration: 0.8, ease: "power2.out", onUpdate: updateS4ClipMask }) : null;
+    const yQuickS4Left = s4Left ? gsap.quickTo(s4Left, "y", { duration: 0.8, ease: "power2.out", onUpdate: updateS4ClipMask }) : null;
     const xQuickS4Right = s4Right ? gsap.quickTo(s4Right, "x", { duration: 0.8, ease: "power2.out", onUpdate: updateS4ClipMask }) : null;
     const yQuickS4Right = s4Right ? gsap.quickTo(s4Right, "y", { duration: 0.8, ease: "power2.out", onUpdate: updateS4ClipMask }) : null;
 
@@ -238,10 +272,10 @@ export default function FeatureStack() {
       const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
 
-      xQuickS2Left?.(normX * 45);
-      yQuickS2Left?.(normY * 20);
-      xQuickS2Right?.(-normX * 55);
-      yQuickS2Right?.(-normY * 25);
+      xQuickS2Left?.(normX * 36);
+      yQuickS2Left?.(normY * 18);
+      xQuickS2Right?.(-normX * 45);
+      yQuickS2Right?.(-normY * 22);
     };
 
     const onS2MouseLeave = () => {
@@ -258,11 +292,11 @@ export default function FeatureStack() {
       const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
 
-      xQuickS3TopRight?.(-normX * 45);
+      xQuickS3TopRight?.(-normX * 42);
       yQuickS3TopRight?.(-normY * 18);
-      xQuickS3BottomLeft?.(normX * 32);
-      yQuickS3BottomLeft?.(normY * 16);
-      xQuickS3BottomMid?.(normX * 22);
+      xQuickS3BottomLeft?.(normX * 30);
+      yQuickS3BottomLeft?.(normY * 15);
+      xQuickS3BottomMid?.(normX * 20);
       yQuickS3BottomMid?.(normY * 12);
     };
 
@@ -282,10 +316,10 @@ export default function FeatureStack() {
       const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
 
-      xQuickS4Left?.(normX * 45);
-      yQuickS4Left?.(normY * 20);
-      xQuickS4Right?.(-normX * 55);
-      yQuickS4Right?.(-normY * 25);
+      xQuickS4Left?.(normX * 36);
+      yQuickS4Left?.(normY * 18);
+      xQuickS4Right?.(-normX * 45);
+      yQuickS4Right?.(-normY * 22);
     };
 
     const onS4MouseLeave = () => {
@@ -339,13 +373,13 @@ export default function FeatureStack() {
     });
   };
 
-  // Balanced editorial weight + exact width to intersect right images cleanly
+  // Balanced editorial weight + exact width to intersect right & lower images cleanly
   const editorialHeadingClass =
-    "font-sans font-bold text-4xl sm:text-6xl md:text-[6rem] lg:text-[7.75rem] xl:text-[8.25rem] tracking-[-0.04em] uppercase leading-[0.9]";
+    "font-sans font-bold text-4xl sm:text-6xl md:text-[6.5rem] lg:text-[8.5rem] xl:text-[9.25rem] tracking-[-0.04em] uppercase leading-[0.88]";
 
   // Side-aligned section index badge matching Banox editorial layout
   const indexBadgeClass =
-    "font-mono text-xs sm:text-sm tracking-widest font-medium pt-1.5 sm:pt-2.5 md:pt-3.5 shrink-0 select-none";
+    "font-mono text-xs sm:text-sm tracking-widest font-medium pt-1.5 sm:pt-2.5 md:pt-4 shrink-0 select-none";
 
   return (
     <div
@@ -379,7 +413,7 @@ export default function FeatureStack() {
         <div className="max-w-[1560px] mx-auto px-6 sm:px-8 md:px-12 relative">
           <div
             ref={stage02Ref}
-            className="relative min-h-[460px] sm:min-h-[600px] lg:min-h-[690px] mb-10 sm:mb-14"
+            className="relative min-h-[460px] sm:min-h-[580px] md:min-h-[640px] lg:min-h-[700px] mb-10 sm:mb-12"
           >
             {/* Base Static Black Headline with Side Number (02) */}
             <div className="absolute inset-x-0 top-0 z-10 pointer-events-none select-none flex items-start gap-3 sm:gap-5 md:gap-7">
@@ -390,19 +424,19 @@ export default function FeatureStack() {
               </h2>
             </div>
 
-            {/* Left Lower Image */}
+            {/* Left Lower Image (Close & Overlapping Bottom-Left of Line 2) */}
             <div
               ref={s2LeftImgRef}
               onMouseEnter={() => setCursorVisible(true)}
               onMouseLeave={() => setCursorVisible(false)}
-              className="absolute left-0 top-[42%] sm:top-[40%] w-[64%] sm:w-[44%] md:w-[37%] z-20 cursor-none group transition-transform will-change-transform"
+              className="absolute left-[4%] sm:left-[8%] top-[24%] sm:top-[23%] w-[56%] sm:w-[38%] md:w-[33%] z-20 cursor-none group transition-transform will-change-transform"
             >
-              <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-neutral-200 shadow-xl">
+              <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-200 shadow-lg">
                 <Image
                   src={EDITORIAL_IMAGES.craft}
                   alt="In-house belt pattern development at SS International Kanpur"
                   fill
-                  sizes="(max-width: 768px) 65vw, 38vw"
+                  sizes="(max-width: 768px) 60vw, 35vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
@@ -411,20 +445,20 @@ export default function FeatureStack() {
               </p>
             </div>
 
-            {/* Right Tall Image (Overlaps & Inverts Headline) */}
+            {/* Right Tall Image (Close & Overlapping Right End of Both Lines) */}
             <div
               ref={s2RightImgRef}
               onMouseEnter={() => setCursorVisible(true)}
               onMouseLeave={() => setCursorVisible(false)}
-              className="absolute right-0 top-0 w-[56%] sm:w-[50%] md:w-[45%] lg:w-[44%] z-20 cursor-none group transition-transform will-change-transform"
+              className="absolute right-[2%] sm:right-[6%] md:right-[8%] top-0 w-[50%] sm:w-[40%] md:w-[37%] lg:w-[36%] z-20 cursor-none group transition-transform will-change-transform"
             >
-              <div className="relative aspect-[4/4.3] rounded-md overflow-hidden bg-neutral-900 shadow-2xl">
+              <div className="relative aspect-[3.5/4] rounded-sm overflow-hidden bg-neutral-900 shadow-xl">
                 <Image
                   src={EDITORIAL_IMAGES.model}
                   alt="Export-grade leather belts and accessories by SS International"
                   fill
                   priority
-                  sizes="(max-width: 768px) 60vw, 45vw"
+                  sizes="(max-width: 768px) 52vw, 38vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
@@ -433,7 +467,7 @@ export default function FeatureStack() {
               </p>
             </div>
 
-            {/* Dynamic Inverted White Text Layer (Identical Side-Number Flex Alignment) */}
+            {/* Dynamic Multi-Image Inverted White Text Layer */}
             <div
               ref={s2WhiteTextRef}
               className="absolute inset-x-0 top-0 z-30 pointer-events-none select-none transition-[clip-path] duration-75 ease-out flex items-start gap-3 sm:gap-5 md:gap-7"
@@ -490,10 +524,10 @@ export default function FeatureStack() {
         aria-labelledby="crafted-precision-title"
       >
         <div className="max-w-[1560px] mx-auto px-6 sm:px-8 md:px-12 relative">
-          {/* Spacious 3-Image Stage so Top-Right & Bottom-Mid images have clean separation */}
+          {/* Tight 3-Image Editorial Stage */}
           <div
             ref={stage03Ref}
-            className="relative min-h-[580px] sm:min-h-[720px] lg:min-h-[820px] mb-10 sm:mb-14"
+            className="relative min-h-[540px] sm:min-h-[680px] lg:min-h-[780px] mb-10 sm:mb-12"
           >
             {/* Base Static Black Headline with Side Number (03) */}
             <div className="absolute inset-x-0 top-0 z-10 pointer-events-none select-none flex items-start gap-3 sm:gap-5 md:gap-7">
@@ -504,20 +538,20 @@ export default function FeatureStack() {
               </h2>
             </div>
 
-            {/* IMAGE 1: Top-Right Large Factory Floor */}
+            {/* IMAGE 1: Top-Right Factory Floor */}
             <div
               ref={s3TopRightImgRef}
               onMouseEnter={() => setCursorVisible(true)}
               onMouseLeave={() => setCursorVisible(false)}
-              className="absolute right-0 top-0 w-[60%] sm:w-[54%] md:w-[50%] lg:w-[48%] z-20 cursor-none group transition-transform will-change-transform"
+              className="absolute right-[2%] sm:right-[6%] md:right-[8%] top-0 w-[52%] sm:w-[44%] md:w-[41%] lg:w-[39%] z-20 cursor-none group transition-transform will-change-transform"
             >
-              <div className="relative aspect-[16/10] rounded-md overflow-hidden bg-neutral-900 shadow-2xl">
+              <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-900 shadow-xl">
                 <Image
                   src={EDITORIAL_IMAGES.factoryFloor}
                   alt="SS International leather belt production floor in Kanpur"
                   fill
                   priority
-                  sizes="(max-width: 768px) 65vw, 50vw"
+                  sizes="(max-width: 768px) 55vw, 40vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
@@ -531,14 +565,14 @@ export default function FeatureStack() {
               ref={s3BottomLeftImgRef}
               onMouseEnter={() => setCursorVisible(true)}
               onMouseLeave={() => setCursorVisible(false)}
-              className="absolute left-0 top-[44%] sm:top-[42%] w-[56%] sm:w-[43%] md:w-[37%] z-20 cursor-none group transition-transform will-change-transform"
+              className="absolute left-[4%] sm:left-[8%] top-[26%] sm:top-[25%] w-[52%] sm:w-[36%] md:w-[32%] z-20 cursor-none group transition-transform will-change-transform"
             >
-              <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-neutral-200 shadow-xl">
+              <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-200 shadow-lg">
                 <Image
                   src={EDITORIAL_IMAGES.stitching}
                   alt="Precision belt cutting, stitching, finishing and polishing"
                   fill
-                  sizes="(max-width: 768px) 60vw, 38vw"
+                  sizes="(max-width: 768px) 55vw, 34vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
@@ -547,19 +581,19 @@ export default function FeatureStack() {
               </p>
             </div>
 
-            {/* IMAGE 3: Bottom-Center/Right Facility Facade (Clean gap below Top-Right image) */}
+            {/* IMAGE 3: Bottom-Center/Right Facility Facade (Clean separation below Top-Right) */}
             <div
               ref={s3BottomMidImgRef}
               onMouseEnter={() => setCursorVisible(true)}
               onMouseLeave={() => setCursorVisible(false)}
-              className="absolute left-[45%] sm:left-[47%] md:left-[50%] bottom-0 w-[52%] sm:w-[43%] md:w-[38%] z-20 cursor-none group transition-transform will-change-transform"
+              className="absolute left-[43%] sm:left-[46%] md:left-[49%] bottom-0 w-[50%] sm:w-[40%] md:w-[36%] z-20 cursor-none group transition-transform will-change-transform"
             >
-              <div className="relative aspect-[16/10] rounded-md overflow-hidden bg-neutral-200 shadow-xl">
+              <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-200 shadow-lg">
                 <Image
                   src={EDITORIAL_IMAGES.facade}
                   alt="SS International manufacturing facility in Kanpur"
                   fill
-                  sizes="(max-width: 768px) 55vw, 40vw"
+                  sizes="(max-width: 768px) 52vw, 38vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
@@ -568,7 +602,7 @@ export default function FeatureStack() {
               </p>
             </div>
 
-            {/* Dynamic Inverted White Text Layer (Identical Side-Number Flex Alignment) */}
+            {/* Dynamic Multi-Image Inverted White Text Layer */}
             <div
               ref={s3WhiteTextRef}
               className="absolute inset-x-0 top-0 z-30 pointer-events-none select-none transition-[clip-path] duration-75 ease-out flex items-start gap-3 sm:gap-5 md:gap-7"
@@ -650,7 +684,7 @@ export default function FeatureStack() {
         <div className="max-w-[1560px] mx-auto px-6 sm:px-8 md:px-12 relative">
           <div
             ref={stage04Ref}
-            className="relative min-h-[460px] sm:min-h-[600px] lg:min-h-[690px] mb-10 sm:mb-14"
+            className="relative min-h-[460px] sm:min-h-[580px] md:min-h-[640px] lg:min-h-[700px] mb-10 sm:mb-12"
           >
             {/* 1. Base Static Black Headline with Side Number (04) */}
             <div className="absolute inset-x-0 top-0 z-10 pointer-events-none select-none flex items-start gap-3 sm:gap-5 md:gap-7">
@@ -661,19 +695,19 @@ export default function FeatureStack() {
               </h2>
             </div>
 
-            {/* 2. Left Lower Image */}
+            {/* 2. Left Lower Image (Close & Overlapping Bottom-Left of Line 2) */}
             <div
               ref={s4LeftImgRef}
               onMouseEnter={() => setCursorVisible(true)}
               onMouseLeave={() => setCursorVisible(false)}
-              className="absolute left-0 top-[42%] sm:top-[40%] w-[64%] sm:w-[44%] md:w-[37%] z-20 cursor-none group transition-transform will-change-transform"
+              className="absolute left-[4%] sm:left-[8%] top-[24%] sm:top-[23%] w-[56%] sm:w-[38%] md:w-[33%] z-20 cursor-none group transition-transform will-change-transform"
             >
-              <div className="relative aspect-[4/3] rounded-md overflow-hidden bg-neutral-200 shadow-xl">
+              <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-200 shadow-lg">
                 <Image
                   src={EDITORIAL_IMAGES.materials}
                   alt="REACH-compliant genuine leather hides sorted at SS International"
                   fill
-                  sizes="(max-width: 768px) 65vw, 38vw"
+                  sizes="(max-width: 768px) 60vw, 35vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
@@ -682,19 +716,19 @@ export default function FeatureStack() {
               </p>
             </div>
 
-            {/* 3. Right Image (Overlaps "INTEGRITY." & Inverts Overlapping Letters to White) */}
+            {/* 3. Right Tall Image (Close & Overlapping Right End of Both Lines) */}
             <div
               ref={s4RightImgRef}
               onMouseEnter={() => setCursorVisible(true)}
               onMouseLeave={() => setCursorVisible(false)}
-              className="absolute right-0 top-0 w-[56%] sm:w-[50%] md:w-[46%] lg:w-[45%] z-20 cursor-none group transition-transform will-change-transform"
+              className="absolute right-[2%] sm:right-[6%] md:right-[8%] top-0 w-[50%] sm:w-[40%] md:w-[37%] lg:w-[36%] z-20 cursor-none group transition-transform will-change-transform"
             >
-              <div className="relative aspect-[4/4.3] rounded-md overflow-hidden bg-neutral-900 shadow-2xl">
+              <div className="relative aspect-[3.5/4] rounded-sm overflow-hidden bg-neutral-900 shadow-xl">
                 <Image
                   src={EDITORIAL_IMAGES.solarRoof}
                   alt="Responsible manufacturing infrastructure at SS International Kanpur"
                   fill
-                  sizes="(max-width: 768px) 60vw, 46vw"
+                  sizes="(max-width: 768px) 52vw, 38vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
@@ -703,7 +737,7 @@ export default function FeatureStack() {
               </p>
             </div>
 
-            {/* 4. Dynamic Inverted White Text Layer (Identical Side-Number Flex Alignment) */}
+            {/* 4. Dynamic Multi-Image Inverted White Text Layer */}
             <div
               ref={s4WhiteTextRef}
               className="absolute inset-x-0 top-0 z-30 pointer-events-none select-none transition-[clip-path] duration-75 ease-out flex items-start gap-3 sm:gap-5 md:gap-7"
